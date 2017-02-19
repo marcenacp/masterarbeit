@@ -1,0 +1,98 @@
+\chapter{Introduction}
+\label{sec:introduction}
+\externaldocument[II-]{2-chapter-methods}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Problem setting and approach}
+
+The present thesis builds on the European Union FP7 project Two!Ears. The latter project aims at developing a computational framework for modeling active exploratory listening that assigns meaning to auditory scenes in order to help a machine listening agent extract knowledge from its direct environment. Using labeled past data and machine learning, it has to simultaneously perform identification and localization of the current observed cues in real time. In the particular case of a fire rescue scenario, a robot evolving in a building shall for example identify environmental sounds, their relative positions and move accordingly to help rescue persons. The environmental sounds are taken from real-life situations: running engine, crash, footsteps, piano, barking dog, phone, knocking, burning fire, crying baby, alarm, female speech, male speech, screams, as well as other various general sounds. In addition to these single cues, challenging acoustic scenarios require to consider mixtures of cues.
+
+We here seek to mimic the human auditory system by separating the left and right cues to create a stereo signal, on the base of which localization is possible. Inspired by biology, we thus intend to exploit the fact that human listeners can easily recognize and localize multiple sound sources and even complex mixtures of cues in noisy and reverberant environments. We first engineer features from binaural recordings. Convolutional neural networks are then used to map the binaural features to the source class (identification) and azimuth (localization).
+
+After presenting the problem and some elements of the underlying theory of machine learning in the introduction, we derive the methods used in terms of architecture and training of deep learning models. This then allows us to draw more general conclusions and present results on architecture selection, multitask learning and performances of the models.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Data and environmental sounds}
+\label{sec:introduction:data}
+
+Two types of data coming from the same dataset were used during the project. They both helped selecting the proper architectures of the neural networks and drawing conclusions on multitask learning. On one hand, clean environmental sounds were easily generated and allowed a fast prototyping. On the other hand, actual mixtures of sounds correspond to real-life cases for which appropriate architectures and models were also selected and assessed.
+
+All sounds come from the NI General Sounds (NIGENS) database. It provides audio recordings for 14 event classes taken from everyday's life: running engine, crash, footsteps, piano, barking dog, phone, knocking, burning fire, crying baby, alarm, female speech, male speech, screams (for a total of $745$ *.wav files), and a so-called ``general'' class ($305$ *.wav files of varied events, going from nature sounds to animal or human sounds). The recordings come from the commercial stock sound provider \url{stockmusic.com}, speech classes from the GRiD and TIMIT corpora \parencite{Cooke2006audio,garofolo1993timit}, and the scream sounds as well as a few general sounds from \url{freesound.org}. The recordings are also taken in isolation, that is without superposition of noise or other sources.
+
+\textbf{Clean sounds} encompass 12 different classes taken from the NIGENS database (alarm, baby, crash, dog, engine, female speech, fire, footsteps, general, knock, phone, piano). Using the Two!Ears binaural simulator, the sounds are then rotated along 72 azimuths (ordered from $-180$\textdegree to $+180$\textdegree with a 5-degree resolution). Each sound is clean in that it is composed of one class localized at one azimuth with no reverberation,---no mixtures are allowed just as in the NIGENS database.
+
+\textbf{Mixed sounds} are proper mixtures of one, two, three or four cues with reverberations and coming from 13 different classes (same classes as clean sounds as well as female and male screams and male speech) and from 72 different azimuths with various signal-to-noise ratio between the considered sources.
+
+The methods for features extraction and data formating are further explained in section~\ref{sec:methods:data}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Deep learning for machine hearing}
+\label{sec:introduction:deep_learning}
+
+We here present the underlying theory on deep learning and convolutional neural networks, as well as the implementation methods we chose and the software we used for training the machine learning models.
+
+\subsection{Deep learning and convolutional neural networks}
+\label{sec:introduction:deep_learning:cnn}
+
+Deep learning refers to artificial neural networks \parencite{haykin2004comprehensive} that are composed of many layers, as well as the corresponding techniques to learn from large datasets. Whereas traditional methods of deep learning mainly perform supervised learning through the use of projections (e.g. principal component analysis) or changes of variables (e.g. kernel classifiers), feedforward neural networks allow to automatically construct the latter techniques through a stack of successive layers whose parameters are learnt as data is fed into the network. These networks are said to be deep when the number of layers is increased. They can be used for classification and regression tasks. Convolutional neural networks (CNN) in particular perform very well in most visual recognition tasks such as image or speech multiclass and multilabel classification \parencite{lecun1995convolutional}.
+
+In CNN, a convolutional stage is defined as a filter layer (convolution), a dimension reduction layer (feature pooling) and a non-linear layer (non-linearity function). A CNN is a stack of convolutional stages. Once the new features are constructed through this stack, a classical multilayer perceptron with linear layers (inner products) classifies them. An activation layer eventually outputs the corresponding probabilities.
+
+In the present context of supervised learning, backpropagation computes the gradients for each weight while gradient descent allows to optimize the weights of each layer given the architecture and the desired outputs corresponding to each training example. The error to minimize between the desired label and the actual output of the network is calculated using the cross-entropy loss $L$:
+\begin{equation}
+L(\mathbf{w}) = \frac{1}{N} \sum_{n = 1}^{N} H(y_n, \hat{y}_n)
+= - \frac{1}{N} \sum_{n = 1}^{N} \left[ y_n \log \hat{y}_n + (1 - y_n) \log (1 - \hat{y}_n) \right]
+\end{equation}
+with $H$ the entropy measuring the similarity between $y_n$ the label ground truth and $\hat{y}_n$ the prediction, averaged along each of the $N$ observations.
+
+The techniques used for training the models include in particular \parencite{lecun2012efficient}:%
+\begin{itemize}
+\itemsep-1.5em
+\item regularization (through the use of dropout \parencite{srivastava2014dropout}, weight decay, momentum, or weight sharing between layers),
+\item rectified linear units (ReLUs) for the non-linear units,
+\item stochastic gradient descent for minimizing the loss function,---it is a stochastic approximation of the more general gradient descent optimization method, as batch learning is computationally not possible given the size of the dataset,
+\item Xavier's initialization of weights \parencite{glorot2010understanding} which randomly draw initial weights from a distribution with zero mean and a specific variance depending on the network's architecture---it is particularly important to make sure the initial weights are properly chosen, since long training times often did not allow us to iterate on several weight initializations, especially for mixed sounds.
+\end{itemize}
+
+\subsection{Deep learning tools}
+
+Models were trained using the deep learning framework Caffe \parencite{jia2014caffe}. Caffe is an open-source well-maintained C++-based software that supports OpenCL and CUDA, thus exploiting parallel computing on Nvidia graphics processing units (GPU). It is originally developed by the Berkeley Vision and Learning Center and is now supported by an active community (\num[group-separator={,}]{3800}+ commits and \num[group-separator={,}]{200}+ contributors on \url{github.com} as of November 2016). In Caffe, the solver and the network architecture are defined separately as Google protobuf models (*.prototxt). They can be defined, automated and controlled via command line or a Python interface, which makes it easier to integrate with other machine learning libraries, such as SciKit Learn for Python.
+
+\textbf{The solver protobuf} defines key parameters for the training and testing phases (type of gradient descent, learning rate policy, regularization parameters, total number of iterations) and the testing phase (test intervals during the training).
+
+\textbf{The network protobuf} defines the underlying architecture of the neural networks, as a series of layers (\verb+Convolution+, \verb+Pooling+, \verb+ReLU+, \verb+InnerProduct+, etc) with their respective hyperparameters. The training process then consists in a back and forth flow along the obtained graph. Blobs are arrays for communicating information from the data to the output loss, storing data, derivatives and parameters at all time. At each moment of the training, all hyperparameters, weights and state of the solver can be saved as a HDF5 or LMDB file. The corresponding snapshots can then be resumed for later use for training or production.
+
+Training was achieved on the research group servers (one with 6~Gb of GPU RAM on an Nvidia GeForce GTX 980 Ti card and 12 Intel Core i7 powering the CPU at 3.50~GHz; another one with 12~Gb of GPU RAM on an Nvidia GeForce GTX Titan X).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Literature on machine hearing and multitask learning}
+
+We now examine past literature on sound identification and localization with deep learning techniques, as well as multitask learning for CNN.
+
+\subsection{Sound identification}
+
+\citeauthor{piczak2015environmental}~\parencite{piczak2015environmental} points out convolutional neural networks as a viable solution to environmental sound classification tasks achieving an accuracy of 73.1\% on a public urban sounds dataset with 10 sound classes. It evaluates a network with two convolutional layers followed by a two-layer perceptron on three public standardized datasets of short environmental recordings (ESC-50~\parencite{piczak2015esc}, ESC-10~\parencite{piczak2015esc} and UrbanSound8K~\parencite{salamon2014dataset}). The model outperforms state-of-the-art techniques of machine learning, even on small datasets after data augmentation. The features used for the audio data are mainly segmented spectrograms.
+
+\citeauthor{songend}~\parencite{songend} see convolutional neural networks as a promising alternative to Gaussian mixtures and Hidden Markov models for automatic speech recognition. Using four convolutional layers with ReLUs and pooling, two inner products with ReLUs and a softmax layer, they successfully handle phone recognition with a test error of 22.1\% on the TIMIT dataset, which closely matches the state-of-the-art. The features they used are mel-log filter banks.
+
+\subsection{Sound localization}
+
+Bio-inspired methods in machine hearing mostly use binaural localization \parencite{ma2015exploiting}. The human auditory system indeed relies on two main cues to determine the azimuth of a sound source: interaural time differences (ITD, lag in cross-correlation function between the left and right ears) and interaural level differences (ILD, energy ratio between the left and right ears).
+
+\citeauthor{woodruff2012binaural}~\parencite{woodruff2012binaural, woodruff2010sequential} propose a binaural model based on ILD and ITD to localize mutliple sources with prior knowledge of the number of recorded cues. The method uses Gaussian mixture models and is said to be computationally complex, thus limiting the number of simultaneous sources.
+
+\citeauthor{ma2015exploiting}~\parencite{ma2015exploiting} achieve robust localization of multiple sources in reverberant conditions, using only the cross-correlations and ILD features fed into a regular deep neural networks with 8 hidden layers (inner products). In particular, in this study, ILD are shown to significantly improve the front-back confusion resulting from the similarity of ITD and ILD in the front and rear hemifields.
+
+\subsection{Multitask learning for convolutional neural networks}
+
+There are already existing methods for transfer and multitask learning for optimizing a single network for several tasks while preserving performance \parencite{li2016learning}.
+
+\textbf{Feature extraction} uses the activations of a layer as extracted features to be fed into a regular classifier, such as support vector machine or even logistic regression.
+
+\textbf{Fine-tuning} allows to modify the parameters of an existing CNN to train a new task. Only the earlier layers are used with the existing optimized weights, while the output layers are optimized for the new tasks.
+
+\textbf{Multitask learning \textit{per se}} consists in optimizing all tasks in parallel with the same anterior layers but different output layers. The ratio between the shared and task-specific parts of the network can be adapted. The network may be pre-trained on a single task before the global optimization.

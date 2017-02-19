@@ -1,0 +1,189 @@
+%% LLT: Turn off some annoying warnings...
+\RequirePackage{silence}
+\WarningFilter{titlesec}{Non standard sectioning command}
+\WarningFilter{scrreprt}{Usage of package}
+\WarningFilter{scrreprt}{Activating an ugly workaround}
+
+% **************************************************
+% Document Class Definition
+% **************************************************
+\documentclass[%
+	paper=A4,					% paper size --> A4 is default in Germany
+	twoside=true,				% onesite or twoside printing
+	openright,					% doublepage cleaning ends up right side
+	parskip=full,				% spacing value / method for paragraphs
+	chapterprefix=true,			% prefix for chapter marks
+	11pt,						% font size
+	headings=normal,			% size of headings
+	bibliography=totoc,			% include bib in toc
+	listof=totoc,				% include listof entries in toc
+	titlepage=on,				% own page for each title page
+	captions=tableabove,		% display table captions above the float env
+	draft=false,				% value for draft version
+]{scrreprt}%
+
+% **************************************************
+% Debug LaTeX Information
+% **************************************************
+%\listfiles
+
+% **************************************************
+% Information and Commands for Reuse
+% **************************************************
+\newcommand{\thesisTitle}{Simultaneous Localization and Classification of Environmental Sounds Using Deep Learning}
+\newcommand{\thesisName}{Pierre \textsc{Marcenac}}
+\newcommand{\thesisSubject}{Master's thesis}
+\newcommand{\thesisDate}{August 26, 2016}
+\newcommand{\thesisVersion}{0.1}
+
+\newcommand{\thesisFirstReviewer}{Prof. Dr. Klaus \textsc{Obermayer}}
+\newcommand{\thesisFirstReviewerUniversity}{\protect{Software Engineering and Theoretical Computer Science}}
+\newcommand{\thesisFirstReviewerDepartment}{Neural Information Processing}
+
+\newcommand{\thesisSecondReviewer}{Youssef \textsc{Kashef}}
+\newcommand{\thesisSecondReviewerUniversity}{\protect{Software Engineering and Theoretical Computer Science}}
+\newcommand{\thesisSecondReviewerDepartment}{Neural Information Processing}
+
+\newcommand{\thesisFirstSupervisor}{Prof. Dr. Klaus \textsc{Obermayer}}
+\newcommand{\thesisSecondSupervisor}{Youssef \textsc{Kashef}}
+
+\newcommand{\thesisUniversity}{\protect{Technical University of Berlin}}
+\newcommand{\thesisUniversityDepartment}{Electrical Engineering and Computer Science}
+\newcommand{\thesisUniversityInstitute}{Software Engineering and Theoretical Computer Science}
+\newcommand{\thesisUniversityGroup}{Neural Information Processing}
+\newcommand{\thesisUniversityCity}{Berlin}
+\newcommand{\thesisUniversityStreetAddress}{Marchstrasse 23}
+\newcommand{\thesisUniversityPostalCode}{D-10587}
+
+% **************************************************
+% Load and Configure Packages
+% **************************************************
+\usepackage[utf8]{inputenc}		% defines file's character encoding
+\usepackage[english]{babel} % babel system, adjust the language of the content
+\usepackage[					% clean thesis style
+	figuresep=colon,%
+	sansserif=false,%
+	hangfigurecaption=false,%
+	hangsection=true,%
+	hangsubsection=true,%
+	colorize=full,%
+	colortheme=bluemagenta,%
+% LLT: Use biber if using UTF8 encoding
+% 	bibsys=bibtex,%
+	bibsys=biber,%
+	bibfile=bib-refs,%
+	bibstyle=authoryear,%
+]{cleanthesis}
+
+\hypersetup{					% setup the hyperref-package options
+	pdftitle={\thesisTitle},	% 	- title (PDF meta)
+	pdfsubject={\thesisSubject},% 	- subject (PDF meta)
+	pdfauthor={\thesisName},	% 	- author (PDF meta)
+	plainpages=false,			% 	-
+	colorlinks=false,			% 	- colorize links?
+	pdfborder={0 0 0},			% 	-
+	breaklinks=true,			% 	- allow line break inside links
+	bookmarksnumbered=true,		%
+	bookmarksopen=true			%
+}
+
+% For the colors in the confusion matrix
+\newcommand{\TP}{\cellcolor{green!25}}
+\newcommand{\FP}{\cellcolor{red!25}}
+\newcommand{\FN}{\cellcolor{blue!25}}
+\newcommand{\TN}{\cellcolor{yellow!25}}
+
+\usepackage{xr} % cross references
+\usepackage[group-separator={,}]{siunitx} % thousand separator
+\usepackage{array, mathtools, multirow}
+%\usepackage[table]{xcolor}
+\usepackage{arydshln}
+\usepackage[colorinlistoftodos]{todonotes}
+\newcommand{\todoYK}[1]{\todo[size=\scriptsize, author=Youssef]{#1}}
+\newcommand{\doneYK}[1]{\todo[size=\scriptsize, author=Youssef,backgroundcolor=blue]{#1}}
+\newcommand{\questionPM}[1]{\todo[size=\scriptsize, author=Pierre,backgroundcolor=green]{#1}}
+
+\renewcommand\mkbibnamefamily[1]{\textsc{#1}} % Small caps for names
+
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
+\usepackage{tabularx}
+
+% **************************************************
+% Document CONTENT
+% **************************************************
+
+\begin{document}
+
+% --------------------------
+% rename document parts
+% --------------------------
+%\renewcaptionname{ngerman}{\figurename}{Abb.}
+%\renewcaptionname{ngerman}{\tablename}{Tab.}
+\renewcaptionname{english}{\figurename}{Fig.}
+\renewcaptionname{english}{\tablename}{Tab.}
+
+% --------------------------
+% Front matter
+% --------------------------
+\pagenumbering{roman}			% roman page numbing (invisible for empty page style)
+\pagestyle{empty}				% no header or footers
+\input{content/X-titlepages}		% INCLUDE: all titlepages
+\cleardoublepage
+
+\pagestyle{plain}				% display just page numbers
+\input{content/0-abstract}		% INCLUDE: the abstracts (english and german)
+\cleardoublepage
+%
+\input{content/0-acknowledgement} % INCLUDE: acknowledgement
+\cleardoublepage
+%
+\setcounter{tocdepth}{2}		% define depth of toc
+\tableofcontents				% display table of contents
+\cleardoublepage
+
+% --------------------------
+% Body matter
+% --------------------------
+\pagenumbering{arabic}			% arabic page numbering
+\setcounter{page}{1}			% set page counter
+\pagestyle{maincontentstyle} 	% fancy header and footer
+
+\input{content/1-chapter-introduction} % INCLUDE: introduction
+\input{content/2-chapter-methods} % INCLUDE: related work
+\input{content/3-chapter-results}	% INCLUDE: system
+\input{content/4-chapter-conclusion} % INCLUDE: concepts
+\cleardoublepage
+
+% --------------------------
+% Back matter
+% --------------------------
+{%
+\setstretch{1.1}
+\renewcommand{\bibfont}{\normalfont\small}
+\setlength{\biblabelsep}{0pt}
+\setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
+\printbibliography[nottype=online]
+%\printbibliography[heading=subbibliography,title={Webseiten},type=online,prefixnumbers={@}] %% REMETTRE CA POUR COMPILER
+}
+\cleardoublepage
+
+\renewcommand{\listfigurename}{List of Figures and Tables} % List of figures
+\listoffigures
+\cleardoublepage
+
+%\listoftables
+%\cleardoublepage
+
+%\input{content/X-colophon}
+%\cleardoublepage
+
+\input{content/X-declaration}
+\clearpage
+\newpage
+\mbox{}
+
+% **************************************************
+% End of Document CONTENT
+% **************************************************
+\end{document}

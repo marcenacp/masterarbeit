@@ -1,0 +1,22 @@
+# The train/test net protocol buffer definition
+net: "PLACEHOLDER_NET"
+test_iter: 500
+test_interval: 1000
+# The base learning rate, momentum and the weight decay of the network.
+base_lr: 0.001
+momentum: 0.9
+weight_decay: 0.005
+# The learning rate policy
+lr_policy: "fixed"
+# Display every 100 iterations
+display: 100
+# The maximum number of iterations
+max_iter: 15000
+# snapshot intermediate results
+snapshot_after_train: true
+snapshot_format: HDF5
+snapshot_prefix: "PLACEHOLDER_MODEL_STORE"
+# solver mode: CPU or GPU
+solver_mode: GPU
+debug_info: false
+
